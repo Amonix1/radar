@@ -1,0 +1,58 @@
+services:
+  migrate:
+    profiles: [app]
+    build: .
+    image: financni-radar-litvinova:local
+    command: [npm, run, db:migrate]
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-radar}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-radar}
+    depends_on:
+      db:
+        condition: service_healthy
+  web:
+    profiles: [app]
+    build: .
+    image: financni-radar-litvinova:local
+    ports: ["127.0.0.1:3100:3100"]
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-radar}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-radar}
+      SYNC_TOKEN: ${SYNC_TOKEN}
+      APP_PASSWORD_HASH: ${APP_PASSWORD_HASH}
+      APP_SESSION_SECRET: ${APP_SESSION_SECRET}
+      APP_ORIGIN: ${APP_ORIGIN:-http://127.0.0.1:3100}
+    volumes: ["./data:/app/data"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+  worker:
+    profiles: [app]
+    build: .
+    image: financni-radar-litvinova:local
+    command: [sh, -c, "npm run sync && npm run sync:watch"]
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-radar}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-radar}
+      SYNC_INTERVAL_HOURS: ${SYNC_INTERVAL_HOURS:-24}
+    volumes: ["./data:/app/data"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+  db:
+    image: postgres:17-alpine
+    ports:
+      - "127.0.0.1:55432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-radar}
+      POSTGRES_DB: ${POSTGRES_DB:-radar}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - radar_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+volumes:
+  radar_pgdata:

@@ -1,0 +1,23 @@
+# Free web hosting; PostgreSQL and RAW storage use Neon Free.
+# No paid services or expiring Render database are provisioned.
+services:
+  - type: web
+    name: financni-radar-litvinova
+    runtime: node
+    region: frankfurt
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm run cloud:web
+    healthCheckPath: /api/health
+    autoDeployTrigger: off
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        sync: false
+      - key: APP_PASSWORD_HASH
+        sync: false
+      - key: APP_SESSION_SECRET
+        generateValue: true
+      - key: SYNC_TOKEN
+        generateValue: true

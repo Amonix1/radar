@@ -1,0 +1,10 @@
+{
+  "projectId": "summer-pond-52900241",
+  "branchId": "br-nameless-boat-b1gtu1sk",
+  "branchName": "production",
+  "region": "aws-eu-central-1",
+  "requiredPlan": "free",
+  "function": "radarsync",
+  "bucket": "radar-raw",
+  "scheduleUtc": "17 3 * * *"
+}
