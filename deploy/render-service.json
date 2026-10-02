@@ -1,0 +1,14 @@
+{
+  "serviceId": "srv-db00ki3ncjis738153q0",
+  "workspaceId": "tea-davvm06gekts73fkl3p0",
+  "name": "financni-radar-litvinova",
+  "url": "https://financni-radar-litvinova.onrender.com",
+  "dashboardUrl": "https://dashboard.render.com/web/srv-db00ki3ncjis738153q0",
+  "plan": "free",
+  "region": "frankfurt",
+  "runtime": "node",
+  "branch": "main",
+  "autoDeploy": "no",
+  "initialDeployId": "dep-db00kj3ncjis738156j0",
+  "initialCommit": "1e009067d0fc46e8db0a8879af7b6fab3ff28d19"
+}

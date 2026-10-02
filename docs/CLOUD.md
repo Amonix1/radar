@@ -5,7 +5,7 @@ Zvolená varianta je **Render Free + Neon Free**, bez placeného workeru, disku 
 ## Vlastnictví a stav
 
 - Zdrojový repozitář: [Amonix1/radar](https://github.com/Amonix1/radar), vlastníkův existující repozitář. `.env*`, `data/`, `artifacts/` a `dist/` jsou vyloučené z Gitu.
-- Web: Render, potvrzený prostor **Tomáš's workspace** (`tea-davvm06gekts73fkl3p0`). Web ještě není vytvořený; pro publikaci zdrojů zbývá přihlášení pro zápis do GitHubu. [Render Dashboard](https://dashboard.render.com/).
+- Web: [financni-radar-litvinova.onrender.com](https://financni-radar-litvinova.onrender.com), Render Free, potvrzený prostor **Tomáš's workspace** (`tea-davvm06gekts73fkl3p0`). [Správa webu v Renderu](https://dashboard.render.com/web/srv-db00ki3ncjis738153q0). Nasazení `dep-db00kj3ncjis738156j0` je `live`, zdrojový commit `1e009067d0fc46e8db0a8879af7b6fab3ff28d19`. Vlastník se do správy přihlašuje svým Render účtem; heslo aplikace tuto správu neotevírá.
 - Databáze a soukromé RAW úložiště: projekt **radar**, Neon Free, Frankfurt, `summer-pond-52900241`, produkční větev `br-nameless-boat-b1gtu1sk`. Vlastník má oprávnění ADMIN. [Správa Neon projektu](https://console.neon.tech/app/projects/summer-pond-52900241).
 - Aktualizátor `radarsync` je nasazený na Neon Functions, Node.js 24. Plán je aktivní každý den v 03:17 UTC; první dva skutečné plánované běhy dne 2. 10. 2026 skončily úspěšně. V soukromém bucketu `radar-raw` je všech 21 archivů, celkem 309 242 951 bajtů.
 
@@ -17,7 +17,7 @@ Render Free web po nečinnosti uspí; první otevření může trvat přibližn�
 
 ## Nastavení a nasazení
 
-`render.yaml` obsahuje pouze web `plan: free`, Node.js 22, sestavení `npm ci && npm run build`, start `npm run cloud:web`, region Frankfurt a health endpoint `/api/health`. Start migruje schéma a připojí statické soubory standalone sestavení. PostgreSQL je externí a používá ověřené TLS.
+`render.yaml` obsahuje pouze web `plan: free`, Node.js 22, sestavení `npm ci --include=dev && npm run build`, start `npm run cloud:web`, region Frankfurt a health endpoint `/api/health`. Web byl vytvořen přímo přes Render nástroj se stejným build/start nastavením; nástroj neumožňuje nastavit HTTP health path, aktuální služba proto používá výchozí TCP health check. Aplikační `/api/health` byl nezávisle ověřen přes veřejné HTTPS. Start migruje schéma a připojí statické soubory standalone sestavení. PostgreSQL je externí a používá ověřené TLS. Automatické deploye jsou vypnuté; po změně zdrojů vlastník spustí Manual Deploy v Dashboardu. Identifikátory služby jsou v `deploy/render-service.json`.
 
 Do nastavení Render webu patří pouze:
 
@@ -45,6 +45,6 @@ Počáteční přenos používá PostgreSQL custom dump bez hesel a bez dat při
 
 Ověřeno: 97 rozpočtových období a 17 rozvah v cloudu, přesná KPI, všech deset stránek, filtry, CSV, čtyři analytické nástroje, skutečné přihlášení požadovaným heslem, anonymní blokace API i podvržených relací, CSRF a logout. Produkční Linux kontejner připojený ke skutečnému Neonu prošel celou HTTP sadou i v limitu 512 MB / 0,5 CPU. Všech 14 zdrojových, databázových a aplikačních testů prošlo; čisté Linux `npm ci` a produkční sestavení prošly. V úložišti byla ověřena metadata všech 21 souborů a skutečný SHA-256 staženého prvního i posledního archivu; anonymní čtení vrací 403. Poslední cloudová funkce ověřila dostupnost S3 a úspěšně provedla plánované importy v 19:27 a 19:28 UTC dne 2. 10. 2026. Dočasná přenosová credential byla zrušena.
 
-Zbývá publikace zdrojů do GitHubu a Render web deploy, poté kontrola finální veřejné HTTPS adresy a Secure cookie. Lokální náhled sám potvrzením nasazení není. Pokus `git push origin HEAD:main` skončil chybou chybějícího GitHub přihlášení; zdroj je bezpečně uložený v lokální větvi `codex/cloud-deployment`.
+Zdrojové soubory byly publikovány do vlastníkovy větve `main` na GitHubu; obsah všech 78 souborů byl ověřen shodným Git tree SHA proti lokální otestované verzi. Secrets ani datové archivy nebyly publikovány. Render build i spuštění prošly, nasazení je `live` a celá HTTP sada prošla na skutečné veřejné HTTPS adrese včetně Secure cookie. V prohlížeči bylo ověřeno přihlášení požadovaným heslem a zobrazení skutečných cloudových dat. Lokální důkaz je `artifacts/cloud-live.png`. Původní lokální větev `codex/cloud-deployment` je zachována.
 
 Při změně přístupového hesla použít `npm run access:configure`, aktualizovat produkční hash i podpisový klíč a restartovat web. Roční CPI vyžaduje kontrolu nového oficiálního vydání podle README.

@@ -2,6 +2,12 @@
 
 Funkční analytická aplikace pro **Město Litvínov, IČO 00266027**. Next.js / TypeScript / Tailwind / komponenty shadcn/ui na Radix / Recharts / PostgreSQL / TypeScript ETL. Veřejné rozhraní používá skutečná ověřená data; neobsahuje demonstrační rozpočet.
 
+## Cloudová aplikace
+
+Web je nasazený na [financni-radar-litvinova.onrender.com](https://financni-radar-litvinova.onrender.com). Vyžaduje přístupové heslo; samotné heslo není ve zdrojích. Provoz používá Render Free a Neon Free. Po nečinnosti může první otevření webu trvat přibližně minutu.
+
+Vlastník spravuje [web v Renderu](https://dashboard.render.com/web/srv-db00ki3ncjis738153q0) a [databázi, RAW úložiště a denní aktualizátor v Neonu](https://console.neon.tech/app/projects/summer-pond-52900241) svými osobními účty. Přístupové heslo aplikace se pro správu těchto účtů nepoužívá. Podrobnosti jsou v [docs/CLOUD.md](docs/CLOUD.md).
+
 ## Spuštění
 
 Požadavky: Node.js 22+, npm, Docker s Compose; síťový přístup k oficiálním službám MONITORu a ČSÚ. První historický import stahuje také objemnější oficiální CSV archivy.
@@ -41,7 +47,7 @@ docker compose -p financni-radar-litvinova --profile app logs -f worker
 docker compose -p financni-radar-litvinova --profile app exec worker npm run data:cpi
 ```
 
-Při přechodu z lokálního Node serveru uvolněte port 3100. Profil zahrnuje migraci před webem a workerem, opakovaný plný import při restartu je idempotentní. Kontejnerový provoz vyžaduje vlastní kontrolu na cílovém serveru; v této instalaci byl ověřen lokální produkční Node server a PostgreSQL kontejner. Veřejný hosting není automaticky nasazen. Pro veřejný provoz nastavte HTTPS reverse proxy, privátní databázovou síť, správu secrets, zálohy a monitoring synchronizace. Nepovolujte přímý přístup k PostgreSQL z internetu. Sites/D1 nepoužíváme, protože požadovanou databází je PostgreSQL.
+Při přechodu z lokálního Node serveru uvolněte port 3100. Profil zahrnuje migraci před webem a workerem, opakovaný plný import při restartu je idempotentní. Lokální Docker profil je zachován; cloud používá nativní Node.js web na Renderu a databázi s ověřeným TLS v Neonu. Migrace proběhne před spuštěním webu. Denní aktualizátor běží jako plánovaná Neon Function nezávisle na uspání bezplatného webu.
 
 ## Funkce
 
@@ -80,7 +86,7 @@ Podrobnosti: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - `POST /api/analyst`: JSON `{ "question": "Jak se změnily výdaje na dopravu za deset let?", "period": "2026-08-31" }`.
 - `POST /api/sync`: vyžaduje hlavičku `Authorization: Bearer <SYNC_TOKEN>`. Token nesmí být ve veřejném klientovi.
 
-Všechny datové stránky, API a exporty vyžadují přihlášení serverovou cookie. Synchronizace navíc vyžaduje administrátorský token. Přístupové heslo není uloženo v klientovi; `.env` obsahuje scrypt hash a náhodný klíč relace. Chybějící konfigurace přístup neotevře. Cloudová databáze, 21 soukromých RAW archivů a denní aktualizátor jsou nasazené v uživatelově projektu Neon Free; web čeká na publikaci zdrojů do GitHubu pro Render Free. Podrobnosti a přístup vlastníka jsou v [docs/CLOUD.md](docs/CLOUD.md); konfigurace je v `render.yaml` a `neon.ts`.
+Všechny datové stránky, API a exporty vyžadují přihlášení serverovou cookie. Synchronizace navíc vyžaduje administrátorský token. Přístupové heslo není uloženo v klientovi; `.env` obsahuje scrypt hash a náhodný klíč relace. Chybějící konfigurace přístup neotevře. Web je nasazený na Render Free; cloudová databáze, 21 soukromých RAW archivů a denní aktualizátor jsou nasazené v uživatelově projektu Neon Free. Podrobnosti a přístup vlastníka jsou v [docs/CLOUD.md](docs/CLOUD.md); konfigurace je v `render.yaml` a `neon.ts`, identifikátory bez secrets v `deploy/`.
 
 ## Testy a kontrola
 
@@ -107,5 +113,5 @@ Závěrečná kontrola: 9 testů se zapnutými zdrojovými i integračními kont
 
 Zálohujte PostgreSQL (např. `pg_dump`) i adresář `data/raw` s původními objemnými ZIP distribucemi. Payload SOAP, vybrané původní CSV řádky, kontrolní manifesty a dokument ČSÚ jsou zároveň v PostgreSQL. Při změně schématu zdroje neobcházejte validaci: doplňte verzovaný parser a kontrolní test.
 
-Dodatečná kontrola zabezpečení pro cloud: všech 11 testů včetně zdrojových a databázových prošlo. Finální Linux Docker obraz se sestavil a spustil proti skutečné PostgreSQL. HTTP sada ověřila přihlášení aktuálním heslem, odhlášení, všech deset stránek, odmítnutí anonymního API/CSV a podvržené relace, kontrolu původu, omezení opakovaných pokusů a Secure/HttpOnly/SameSite cookie s odvozenou cloudovou HTTPS origin. Blueprint prošel aktuálním oficiálním JSON schématem. Ověření HTTPS origin v místním kontejneru nenahrazuje finální kontrolu skutečné veřejné HTTPS adresy po nasazení; to dosud neproběhlo.
+Finální cloudová kontrola dne 2. 10. 2026: všech 14 zdrojových, databázových a aplikačních testů prošlo; čisté Linux `npm ci` a produkční sestavení prošly. Render nasadil commit `1e009067d0fc46e8db0a8879af7b6fab3ff28d19` a deployment je `live`. Celá HTTP sada prošla přímo na veřejné HTTPS adrese: skutečné přihlášení a odhlášení, všech deset stránek, přesná KPI, filtry, CSV, všechny čtyři analytické nástroje, anonymní blokace, podvržené relace, CSRF, limit přihlašovacích pokusů a Secure/HttpOnly/SameSite cookie. Přihlášení a načtená data byly nezávisle ověřeny v prohlížeči. Anonymní `/api/health` vrací pouze stav `ok`.
 
