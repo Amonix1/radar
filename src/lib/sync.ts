@@ -26,10 +26,8 @@ export async function synchronize({refresh=false,latestOnly=false}:{refresh?:boo
   const catalog=JSON.parse(catText)['datová_sada'] as string[];
   const paragraphs=await dictionary(c,'paragraph','paragraf'),items=await dictionary(c,'item','polozka');
   const budgets=catalog.filter(url=>/\/FinM(?:_\d{4})?\/\d{4}_\d{2}_/.test(url));
-  // SOAP keeps annual balance sheets and the latest quarter. Other quarters remain in the catalog.
-  const allBalances=catalog.filter(url=>/\/Rozvaha\/\d{4}_\d{2}_/.test(url)).sort();
-  const latestBalance=allBalances.at(-1);
-  const balances=allBalances.filter(url=>/_12_/.test(url)||url===latestBalance);
+  // Every published balance period is usable; archived quarters fall back to official CSV.
+  const balances=catalog.filter(url=>/\/Rozvaha\/\d{4}_\d{2}_/.test(url)).sort();
   let entries=[...budgets.map(url=>({url,family:'budget'})),...balances.map(url=>({url,family:'balance-sheet'}))].map(e=>{const [,year,month]=e.url.match(/\/(\d{4})_(\d{2})_/) as RegExpMatchArray;return {...e,period:`${year}-${month}-${new Date(Date.UTC(Number(year),Number(month),0)).getUTCDate()}`,report:e.family==='balance-sheet'?'001':Number(year)>=2026?'063':'051'};}).sort((a,b)=>b.period.localeCompare(a.period));
   if(latestOnly)entries=entries.filter(e=>e.period.slice(0,4)===entries[0].period.slice(0,4));
   for(const entry of entries) {
@@ -42,7 +40,7 @@ export async function synchronize({refresh=false,latestOnly=false}:{refresh?:boo
      id=await raw(c,entry.url,entry.report,entry.period,text);
      data=parseResponse(text,ICO,entry.period,entry.report);
     }catch(e){
-     if(entry.family!=='budget'||!(e instanceof Error)||!e.message.includes('HTTP 404'))throw e;
+     if(!(e instanceof Error)||!e.message.includes('HTTP 404'))throw e;
      log('csv_fallback',{period:entry.period});const bulk=await bulkStatement(entry.url,entry.family,entry.period);data=bulk.data;id=await raw(c,bulk.url,entry.report,entry.period,bulk.payload);
     }
     if(entry.family==='budget') {

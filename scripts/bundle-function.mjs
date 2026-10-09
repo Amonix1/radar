@@ -2,11 +2,13 @@ import {build} from 'esbuild';
 import fs from 'node:fs/promises';
 import {deflateRawSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
+import {createRequire} from 'node:module';
 
 await fs.mkdir('dist',{recursive:true});
+const wasm=await fs.readFile(createRequire(import.meta.url).resolve('node-unrar-js/dist/js/unrar.wasm'));
 await build({entryPoints:['functions/sync.ts'],bundle:true,platform:'node',target:'node24',format:'esm',
  outfile:'dist/index.mjs',minify:true,external:['pg-native'],banner:{js:
- "import{createRequire as __cr}from'node:module';import{fileURLToPath as __f}from'node:url';import{dirname as __d}from'node:path';const require=__cr(import.meta.url);const __filename=__f(import.meta.url);const __dirname=__d(__filename);"}});
+ "import{createRequire as __cr}from'node:module';import{fileURLToPath as __f}from'node:url';import{dirname as __d}from'node:path';const require=__cr(import.meta.url);const __filename=__f(import.meta.url);const __dirname=__d(__filename);const __RADAR_UNRAR_WASM__=Buffer.from('"+wasm.toString('base64')+"','base64');"}});
 // A single-file ZIP, with no machine-specific paths or environment secrets.
 const body=await fs.readFile('dist/index.mjs'),compressed=deflateRawSync(body),name=Buffer.from('index.mjs');
 let crc=0xffffffff;

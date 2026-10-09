@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 const config: NextConfig = {
   output: 'standalone',
-  serverExternalPackages: ['pg'],
+  serverExternalPackages: ['pg','node-unrar-js'],
   async headers() {
     return [{source:'/:path*',headers:[
       {key:'X-Content-Type-Options',value:'nosniff'},
