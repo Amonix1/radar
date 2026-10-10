@@ -10,13 +10,42 @@ import {ICO,type Xml} from './monitor';
 
 // The standalone Function bundle embeds this WASM; ordinary Node resolves the package asset.
 declare const __RADAR_UNRAR_WASM__:Buffer|undefined;
+async function* normalizeLegacyHeader(stream:Readable) {
+ let pending=Buffer.alloc(0),complete=false;
+ const header=(line:Buffer)=>{
+  const text=line.toString('utf8').replace(/^\uFEFF/,'');
+  if(!text.startsWith('"""'))return line;
+  // 2014 ROZV2 exports prepend improperly quoted SAP descriptions to the header.
+  // Only the header is repaired: technical aliases after ':' are authoritative.
+  const names=text.replace(/\r$/,'').split(';').map(cell=>{
+   const match=cell.match(/^""".+"""[^:]+:([A-Z0-9_]+)$/);
+   if(!match)throw new Error('Unsupported legacy CSV header');
+   return match[1]==='ZC_SYNUC'?'ZSYN_UCET':match[1];
+  });
+  if(new Set(names).size!==names.length||!names.includes('ZC_ICO')||!names.includes('0FISCPER'))throw new Error('Invalid legacy CSV header');
+  return Buffer.from(names.join(';'));
+ };
+ for await(const value of stream){
+  const chunk=Buffer.isBuffer(value)?value:Buffer.from(value);
+  if(complete){yield chunk;continue;}
+  pending=Buffer.concat([pending,chunk]);const newline=pending.indexOf(10);
+  if(newline<0){if(pending.length>65536)throw new Error('CSV header exceeds limit');continue;}
+  if(newline>65536)throw new Error('CSV header exceeds limit');
+  yield Buffer.concat([header(pending.subarray(0,newline)),Buffer.from('\n')]);
+  yield pending.subarray(newline+1);pending=Buffer.alloc(0);complete=true;
+ }
+ if(!complete&&pending.length)yield header(pending);
+}
 export async function readCityCsv(stream:Readable):Promise<Xml[]> {
- const records=stream.pipe(parse({delimiter:';',bom:true,columns:(h:string[])=>h.map(x=>x.split(':')[0]),trim:true,
+ const input=Readable.from(normalizeLegacyHeader(stream));
+ const records=input.pipe(parse({delimiter:';',bom:true,columns:(h:string[])=>h.map(x=>{const name=x.split(':')[0];return name==='ZC_SYNUC'?'ZSYN_UCET':name;}),trim:true,
   // Legacy CSUIS exports end with a DOS EOF marker on its own line.
   comment:'\x1a',comment_no_infix:true,
   on_record:r=>String((r as Xml).ZC_ICO||'').replace(/^0+/,'')===ICO.replace(/^0+/,'')?r:null}));
+ input.on('error',error=>records.destroy(error));
  const rows:Xml[]=[];
- for await(const row of records)rows.push(row);
+ try{for await(const row of records)rows.push(row);}
+ finally{records.destroy();input.destroy();}
  return rows;
 }
 export async function readOfficialArchive(file:string):Promise<{format:'zip'|'rar';files:Record<string,Xml[]>}> {
