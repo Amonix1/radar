@@ -63,9 +63,9 @@ Při přechodu z lokálního Node serveru uvolněte port 3100. Profil zahrnuje m
 
 ## Ověřená data a metodika
 
-Při implementaci k **1. 10. 2026** bylo načteno **97 dostupných období FIN od 2010 do srpna 2026**, rozvahy za uzavřené roky a nejnovější dostupné čtvrtletí, počty obyvatel 2010–2026 a roční CPI 2010–2025. Katalog může nabídnout více období později; UI i worker dostupnost zjišťují dynamicky.
+K **10. 10. 2026** je načteno **97 ze 97 publikovaných období FIN od 2010 do srpna 2026** a **57 z 57 publikovaných rozvah od 2010 do června 2026**, včetně všech historických čtvrtletí. Počty obyvatel pokrývají 2010–2026 a roční CPI 2010–2025. Katalog může nabídnout více období později; UI i worker dostupnost zjišťují dynamicky.
 
-Oficiální [katalog MONITOR](https://monitor.statnipokladna.gov.cz/api/opendata/monitor), [WSDL](https://monitor.statnipokladna.gov.cz/api/monitorws?wsdl), XML číselníky a oficiální CSV ZIP distribuce. SOAP FIN má do 2025 kód 051, od 2026 kód 063. Starší období bez SOAP pokrývá streamovaný import oficiálního CSV archivu. Žádný scraping HTML.
+Oficiální [katalog MONITOR](https://monitor.statnipokladna.gov.cz/api/opendata/monitor), [WSDL](https://monitor.statnipokladna.gov.cz/api/monitorws?wsdl), XML číselníky a oficiální CSV distribuce ZIP/RAR. SOAP FIN má do 2025 kód 051, od 2026 kód 063. Starší období FIN i rozvah bez SOAP pokrývá import oficiálního CSV archivu. Rozvaha za březen 2013 používá RAR navzdory příponě ZIP a tisíce Kč; parser ověřuje skutečný formát, IČO, období, účty a účetní identitu. Žádný scraping HTML.
 
 Kontrolní příklad **31. 8. 2026**, konsolidovaná skutečnost: příjmy **638 098 639,41 Kč**, výdaje **862 113 904,62 Kč**, saldo **−224 015 265,21 Kč**, financování **224 015 265,21 Kč**. Provozní saldo **94 666 599,62 Kč**, kapitálové výdaje **332 496 340,20 Kč**. Hodnoty jsou kumulativní, měsíce se nesčítají.
 
@@ -86,7 +86,7 @@ Podrobnosti: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - `POST /api/analyst`: JSON `{ "question": "Jak se změnily výdaje na dopravu za deset let?", "period": "2026-08-31" }`.
 - `POST /api/sync`: vyžaduje hlavičku `Authorization: Bearer <SYNC_TOKEN>`. Token nesmí být ve veřejném klientovi.
 
-Všechny datové stránky, API a exporty vyžadují přihlášení serverovou cookie. Synchronizace navíc vyžaduje administrátorský token. Přístupové heslo není uloženo v klientovi; `.env` obsahuje scrypt hash a náhodný klíč relace. Chybějící konfigurace přístup neotevře. Web je nasazený na Render Free; cloudová databáze, 21 soukromých RAW archivů a denní aktualizátor jsou nasazené v uživatelově projektu Neon Free. Podrobnosti a přístup vlastníka jsou v [docs/CLOUD.md](docs/CLOUD.md); konfigurace je v `render.yaml` a `neon.ts`, identifikátory bez secrets v `deploy/`.
+Všechny datové stránky, API a exporty vyžadují přihlášení serverovou cookie. Synchronizace navíc vyžaduje administrátorský token. Přístupové heslo není uloženo v klientovi; `.env` obsahuje scrypt hash a náhodný klíč relace. Chybějící konfigurace přístup neotevře. Web je nasazený na Render Free; cloudová databáze, 61 soukromých RAW archivů a denní aktualizátor jsou nasazené v uživatelově projektu Neon Free. Podrobnosti a přístup vlastníka jsou v [docs/CLOUD.md](docs/CLOUD.md); konfigurace je v `render.yaml` a `neon.ts`, identifikátory bez secrets v `deploy/`.
 
 ## Testy a kontrola
 
@@ -105,7 +105,7 @@ npm run test:smoke
 
 Zdrojový test 2025 používá XML uložené v této instalaci (`data/research`); na čisté instalaci lze zdrojové fixtures opět získat pomocí `npm run test:prepare-sources`. Běžné unit testy je nevyžadují. Integrační test potřebuje naplněnou lokální DB. Test veřejného/interního oddělení běží v transakci s rollbackem; produkční data nemění. `verify` znovu počítá aktivní SOAP zdroje a porovnává uložené agregace; CSV mají reconciliation přímo v ETL. Ověřeno 988 agregací (vždy schválený, upravený a skutečný objem) proti SOAP, opakovaný import beze změny vytvořil 0 nových výkazů.
 
-Závěrečná kontrola: 9 testů se zapnutými zdrojovými i integračními kontrolami, TypeScript a produkční sestavení prošly. HTTP kontrola ověřila všech 10 stránek, správné KPI a filtry, CSV, odmítnutí neautorizované synchronizace a všechny 4 analytické nástroje. V prohlížeči byly ověřeny drill-down, přenos filtrů mezi stránkami, světlý/tmavý režim, mobilní navigace a odstranění staré odpovědi analytika při změně období. Při mobilním i desktopovém viewportu nepřetéká dokument vodorovně; široké tabulky mají vlastní posuvník. Náhledy jsou v lokálním `artifacts/` (nejsou v Gitu).
+Kontrola opravy importéru: 19 testů prošlo, jeden volitelný integrační test byl vynechán. TypeScript, čisté Linux npm ci i produkční sestavení prošly. HTTP kontrola ověřila všech 10 stránek, správné KPI a filtry, CSV, odmítnutí neautorizované synchronizace a všechny 4 analytické nástroje. V prohlížeči byly ověřeny drill-down, přenos filtrů mezi stránkami, světlý/tmavý režim, mobilní navigace a odstranění staré odpovědi analytika při změně období. Při mobilním i desktopovém viewportu nepřetéká dokument vodorovně; široké tabulky mají vlastní posuvník. Náhledy jsou v lokálním `artifacts/` (nejsou v Gitu).
 
 ## Připravené návaznosti a omezení
 
@@ -113,5 +113,7 @@ Závěrečná kontrola: 9 testů se zapnutými zdrojovými i integračními kont
 
 Zálohujte PostgreSQL (např. `pg_dump`) i adresář `data/raw` s původními objemnými ZIP distribucemi. Payload SOAP, vybrané původní CSV řádky, kontrolní manifesty a dokument ČSÚ jsou zároveň v PostgreSQL. Při změně schématu zdroje neobcházejte validaci: doplňte verzovaný parser a kontrolní test.
 
-Finální cloudová kontrola dne 2. 10. 2026: všech 14 zdrojových, databázových a aplikačních testů prošlo; čisté Linux `npm ci` a produkční sestavení prošly. Render nasadil commit `1e009067d0fc46e8db0a8879af7b6fab3ff28d19` a deployment je `live`. Celá HTTP sada prošla přímo na veřejné HTTPS adrese: skutečné přihlášení a odhlášení, všech deset stránek, přesná KPI, filtry, CSV, všechny čtyři analytické nástroje, anonymní blokace, podvržené relace, CSRF, limit přihlašovacích pokusů a Secure/HttpOnly/SameSite cookie. Přihlášení a načtená data byly nezávisle ověřeny v prohlížeči. Anonymní `/api/health` vrací pouze stav `ok`.
+Kontrola MONITORu dne 10. 10. 2026: doplněno 40 chybějících čtvrtletních rozvah. Katalog a produkční databáze obsahují shodně 97 rozpočtových období a 57 rozvah bez chybějícího období. Nejnovější FIN je 31. 8. 2026, rozvaha 30. 6. 2026. Všech 8688 účetních částek souhlasí s RAW zdroji, všech 57 rozvah má shodná aktiva a pasiva a všech 2 910 přímo sečtených rozpočtových hodnot souhlasí s agregacemi. Samostatné ověření SOAP porovnalo 988 agregací / 2 964 částek. V soukromém úložišti je ověřeno 61 archivů, 1 137 520 755 bajtů. Denní aktualizace 10. 10. 2026 v 03:17 UTC skončila úspěšně (run 20, nasazení funkce 3). Podrobnosti: [docs/MONITOR-AUDIT.md](docs/MONITOR-AUDIT.md).
+
+Počáteční cloudová kontrola dne 2. 10. 2026: všech 14 zdrojových, databázových a aplikačních testů prošlo; čisté Linux `npm ci` a produkční sestavení prošly. Render nasadil commit `1e009067d0fc46e8db0a8879af7b6fab3ff28d19` a deployment je `live`. Celá HTTP sada prošla přímo na veřejné HTTPS adrese: skutečné přihlášení a odhlášení, všech deset stránek, přesná KPI, filtry, CSV, všechny čtyři analytické nástroje, anonymní blokace, podvržené relace, CSRF, limit přihlašovacích pokusů a Secure/HttpOnly/SameSite cookie. Přihlášení a načtená data byly nezávisle ověřeny v prohlížeči. Anonymní `/api/health` vrací pouze stav `ok`.
 

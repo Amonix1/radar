@@ -10,5 +10,8 @@
   "branch": "main",
   "autoDeploy": "no",
   "initialDeployId": "dep-db00kj3ncjis738156j0",
-  "initialCommit": "1e009067d0fc46e8db0a8879af7b6fab3ff28d19"
+  "initialCommit": "1e009067d0fc46e8db0a8879af7b6fab3ff28d19",
+  "lastVerifiedDeployId": "dep-db52u47lot8c73dhli00",
+  "lastVerifiedCommit": "c0ee03b0f0e8f62cbb610184c003de16e11053ad",
+  "lastVerifiedAt": "2026-10-10T12:30:05.929Z"
 }

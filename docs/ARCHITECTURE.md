@@ -14,7 +14,7 @@ Next.js App Router poskytuje veřejné analytické rozhraní a read-only JSON/CS
 - Rozvaha: 001, samostatné čtvrtletní období; její datum je vždy uvedeno u dluhu.
 - Ukazatele: 100; dostupnost odvozena z odpovědi služby, nenahrazuje chybějící výkaz.
 
-Katalog k ověření obsahuje FIN od 2010, čtvrtletní období od 2013 a měsíční od 2020. Dostupnost SOAP se kontroluje při importu; při 404 je použita oficiální CSV ZIP distribuce z katalogu. Leden/červenec se nevymýšlí. Skutečnost je kumulativní od počátku roku; období se nikdy nesčítají. K 1. 10. 2026 je aktivních 97 rozpočtových období, nejnovější srpen 2026. Rozvahy jsou načtené za uzavřené roky a nejnovější dostupné čtvrtletí; nejde o kompletní historii všech čtvrtletních rozvah.
+Katalog k ověření obsahuje FIN od 2010, čtvrtletní období od 2013 a měsíční od 2020. Dostupnost SOAP se kontroluje při importu; při 404 je pro FIN i rozvahu použita oficiální CSV distribuce ZIP/RAR z katalogu. Leden/červenec se nevymýšlí. Skutečnost je kumulativní od počátku roku; období se nikdy nesčítají. K 10. 10. 2026 je aktivních všech 97 publikovaných rozpočtových období (nejnovější srpen 2026) a všech 57 publikovaných rozvah (nejnovější červen 2026), včetně historických čtvrtletí. CSV rozvah se mapuje na stejné účty jako SOAP, kontroluje IČO, kód výkazu, období, duplicity a aktiva = pasiva. Doslovné CSV řádky i jednotky zůstávají v RAW.
 
 ## Vrstvy
 
